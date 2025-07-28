@@ -8,18 +8,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const FormSchema = z.object({
+  fullName: z.string(),
   email: z.string(),
   password: z.string(),
+  confirmPassword: z.string(),
 });
 
 type FormInput = z.infer<typeof FormSchema>;
 
-export default function FormLogin() {
+export default function FormRegister() {
   const { register, handleSubmit } = useForm<FormInput>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      fullName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -30,10 +34,19 @@ export default function FormLogin() {
       onSubmit={handleSubmit((d) => console.log(d))}
     >
       <TextInput
+        id="fullName"
+        label="Fullname"
+        type="string"
+        autoComplete="off"
+        placeholder="Nguyen Van A"
+        {...register("fullName")}
+      />
+      <TextInput
         id="email"
         label="Email"
         type="email"
         autoComplete="off"
+        classNameContainer="mt-4"
         placeholder="Example@email.com"
         {...register("email")}
       />
@@ -46,10 +59,16 @@ export default function FormLogin() {
         placeholder="At least 8 characters"
         {...register("password")}
       />
-      <Button className="text-(--color-blue) text-sm mt-4" variant="text">
-        Forgot Password?
-      </Button>
-      <Button className="mt-4">Sign in</Button>
+      <TextInput
+        id="confirmPassword"
+        label="Confirm password"
+        type="password"
+        autoComplete="off"
+        classNameContainer="mt-4"
+        placeholder="Verify password"
+        {...register("confirmPassword")}
+      />
+      <Button className="mt-6">Sign up</Button>
     </Form>
   );
 }

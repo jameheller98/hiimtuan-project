@@ -1,21 +1,28 @@
 "use client";
 import classNames from "classnames";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 export default function Footer({
   className,
-  isLoginPage = false,
+  isAuthPage = false,
 }: {
   className?: string;
-  isLoginPage?: boolean;
+  isAuthPage?: boolean;
 }) {
   const pathname = usePathname();
+  const [pathShouldHidden] = useState([
+    "/auth/login",
+    "/auth/register",
+    "/auth/forgot-password",
+  ]);
 
   return (
     <footer
       className={classNames("py-6 text-center", className, {
-        hidden: !isLoginPage && pathname.includes("/login"),
+        hidden:
+          !isAuthPage &&
+          pathShouldHidden.some((item) => pathname.includes(item)),
       })}
     >
       <small className="text-(--color-copyright) text-sm">
