@@ -1,16 +1,14 @@
-package com.hiimuan.mail_service.dto.request;
+package com.hiimtuan.mail_service.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class MailRequestDto {
 	@NotBlank(message = "recipient is required")
 	@Email(message = "recipient is invalid")

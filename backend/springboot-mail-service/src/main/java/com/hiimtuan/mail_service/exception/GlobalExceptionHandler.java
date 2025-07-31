@@ -1,4 +1,4 @@
-package com.hiimuan.mail_service.exception;
+package com.hiimtuan.mail_service.exception;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,16 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ProblemDetail handleSecurityException(Exception exception) {
-		ProblemDetail errorDetail = null;
-
 		exception.printStackTrace();
 
-		if (errorDetail == null) {
-			errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
-			errorDetail.setProperty("description", "Unknown interval server error");
-		}
+		ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
 
-		return errorDetail;
+        errorDetail.setProperty("description", "Unknown interval server error");
+
+        return errorDetail;
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,10 +1,10 @@
-package com.hiimuan.mail_service;
+package com.hiimtuan.mail_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MailServiceApplicationTests {
+class MailService1ApplicationTests {
 
 	@Test
 	void contextLoads() {

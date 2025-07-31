@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.hiimtuan.mail_service.proto";
+option java_outer_classname = "MailServiceProto";
+
+message RequestMail {
+  string recipient = 1;
+  string msgBody = 2;
+  string subject = 3;
+}
+
+message ResponseMail {
+  string message = 1;
+}
+
+service MailService {
+  rpc sendSimpleMail(RequestMail) returns (ResponseMail) {}
+}

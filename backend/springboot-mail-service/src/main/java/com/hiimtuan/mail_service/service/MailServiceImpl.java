@@ -1,10 +1,10 @@
-package com.hiimuan.mail_service.service;
+package com.hiimtuan.mail_service.service;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import com.hiimuan.mail_service.dto.request.MailRequestDto;
+import com.hiimtuan.mail_service.dto.request.MailRequestDto;
 
 import lombok.AllArgsConstructor;
 
@@ -24,7 +24,7 @@ public class MailServiceImpl implements MailService {
 
 			javaMailSender.send(mailMessage);
 
-			return "Mail Sent Successfully...";
+			return "Send mail success!";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "Error while Sending Mail";

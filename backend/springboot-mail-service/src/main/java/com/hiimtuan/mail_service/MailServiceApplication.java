@@ -1,4 +1,4 @@
-package com.hiimuan.mail_service;
+package com.hiimtuan.mail_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

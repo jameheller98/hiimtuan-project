@@ -1,5 +1,6 @@
-package com.hiimuan.mail_service.config;
+package com.hiimtuan.mail_service.config;
 
+import lombok.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -11,7 +12,7 @@ public class CorsConfiguration {
 	WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
 			@Override
-			public void addCorsMappings(CorsRegistry registry) {
+			public void addCorsMappings(@NonNull CorsRegistry registry) {
 				registry.addMapping("/**").allowedOrigins("http://localhost:8765").allowedMethods("POST")
 						.allowedHeaders("Authorization", "Content-Type");
 			}
