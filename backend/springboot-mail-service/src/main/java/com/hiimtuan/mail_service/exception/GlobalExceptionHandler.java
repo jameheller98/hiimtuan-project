@@ -18,15 +18,15 @@ public class GlobalExceptionHandler {
 
 		ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
 
-        errorDetail.setProperty("description", "Unknown interval server error");
+        errorDetail.setProperty("message", "Unknown interval server error");
 
         return errorDetail;
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ProblemDetail handleException(MethodArgumentNotValidException exception) {
-		ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400),
-				exception.getMessage());
+		ProblemDetail errorDetail =  ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
+
 		Map<String, String> errors = new HashMap<>();
 
 		exception.getBindingResult().getAllErrors().forEach((error) -> {
@@ -35,7 +35,8 @@ public class GlobalExceptionHandler {
 			errors.put(fieldName, errorMessage);
 		});
 
-		errorDetail.setProperty("errorDetail", errors);
+		errorDetail.setProperty("message", "Invalid argument error.");
+		errorDetail.setProperty("errors", errors);
 
 		return errorDetail;
 	}
