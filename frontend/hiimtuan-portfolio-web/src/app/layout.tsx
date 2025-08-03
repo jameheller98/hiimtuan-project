@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Footer from "./components/Footer";
+import { ToastContainer } from "react-toastify";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body>
         {children}
         <Footer />
+        <ToastContainer />
       </body>
     </html>
   );

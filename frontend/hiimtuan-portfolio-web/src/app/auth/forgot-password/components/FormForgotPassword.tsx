@@ -6,6 +6,9 @@ import TextInput from "@/ui/TextInput";
 import Button from "@/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useResetPasswordMutation } from "@/api/mutations/auth/useResetPasswordMutation";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const FormSchema = z.object({
   email: z.string(),
@@ -14,6 +17,8 @@ const FormSchema = z.object({
 type FormInput = z.infer<typeof FormSchema>;
 
 export default function FormForgotPassword() {
+  const router = useRouter();
+  const { trigger } = useResetPasswordMutation();
   const { register, handleSubmit } = useForm<FormInput>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -21,11 +26,22 @@ export default function FormForgotPassword() {
     },
   });
 
+  const handleResetPassword = async (data: FormInput) => {
+    try {
+      const result = await trigger(data);
+
+      toast(result.message, { type: "success", position: "top-left" });
+      router.replace("/auth/login");
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <Form
       action=""
       className="mt-6 text-right"
-      onSubmit={handleSubmit((d) => console.log(d))}
+      onSubmit={handleSubmit(handleResetPassword)}
     >
       <TextInput
         id="email"

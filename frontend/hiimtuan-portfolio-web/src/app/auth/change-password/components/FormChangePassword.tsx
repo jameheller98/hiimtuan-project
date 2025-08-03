@@ -1,11 +1,14 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Form from "next/form";
 import TextInput from "@/ui/TextInput";
 import Button from "@/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useChangePasswordMutation } from "@/api/mutations/auth/useChangePasswordMutation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const FormSchema = z.object({
   newPassword: z.string(),
@@ -15,6 +18,10 @@ const FormSchema = z.object({
 type FormInput = z.infer<typeof FormSchema>;
 
 export default function FormChangePassword() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const router = useRouter();
+  const { trigger } = useChangePasswordMutation();
   const { register, handleSubmit } = useForm<FormInput>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -23,11 +30,33 @@ export default function FormChangePassword() {
     },
   });
 
+  useEffect(() => {
+    if (!token) {
+      router.replace("/auth/login");
+    }
+  }, [token, router]);
+
+  const handleChangePassword = async (data: FormInput) => {
+    if (!token) return;
+
+    try {
+      const result = await trigger({
+        password: data.newPassword,
+        passwordResetToken: token,
+      });
+
+      toast(result.message, { type: "success", position: "top-left" });
+      router.replace("/auth/login");
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <Form
       action=""
       className="mt-6 text-right"
-      onSubmit={handleSubmit((d) => console.log(d))}
+      onSubmit={handleSubmit(handleChangePassword)}
     >
       <TextInput
         id="newPassword"

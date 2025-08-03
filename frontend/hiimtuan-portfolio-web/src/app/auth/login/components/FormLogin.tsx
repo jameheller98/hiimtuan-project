@@ -7,6 +7,7 @@ import Button from "@/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
+import { useLoginMutation } from "@/api/mutations/auth/useLoginMutation";
 
 const FormSchema = z.object({
   email: z.string(),
@@ -16,6 +17,7 @@ const FormSchema = z.object({
 type FormInput = z.infer<typeof FormSchema>;
 
 export default function FormLogin() {
+  const { trigger } = useLoginMutation();
   const { register, handleSubmit } = useForm<FormInput>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -24,11 +26,15 @@ export default function FormLogin() {
     },
   });
 
+  const handleLogin = (data: FormInput) => {
+    trigger(data);
+  };
+
   return (
     <Form
       action=""
       className="mt-6 text-right"
-      onSubmit={handleSubmit((d) => console.log(d))}
+      onSubmit={handleSubmit(handleLogin)}
     >
       <TextInput
         id="email"
