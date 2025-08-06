@@ -6,6 +6,7 @@ import TextInput from "@/ui/TextInput";
 import Button from "@/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
 const FormSchema = z.object({
   fullName: z.string(),
@@ -26,6 +27,8 @@ export default function FormRegister() {
       confirmPassword: "",
     },
   });
+
+  useCheckIsLogin();
 
   return (
     <Form

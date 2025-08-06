@@ -15,6 +15,7 @@ export default function Footer({
     "/auth/login",
     "/auth/register",
     "/auth/forgot-password",
+    "/auth/change-password",
   ]);
 
   return (

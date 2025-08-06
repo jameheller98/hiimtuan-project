@@ -4,7 +4,8 @@ import axios, {
   AxiosResponse,
   CreateAxiosDefaults,
 } from "axios";
-import { TVersion } from "./api.interface";
+import { IApiResponse, TVersion } from "./api.interface";
+import { useAuthStore } from "@/stores";
 
 const defaultConfig = {
   baseURL: "http://localhost:8765/api",
@@ -13,6 +14,8 @@ const defaultConfig = {
     "Content-Type": "application/json",
   },
 };
+
+let isRefreshToken = false;
 
 class API {
   private axiosInstance: AxiosInstance;
@@ -28,6 +31,12 @@ class API {
 
         delete config.params?.version;
 
+        const authStore = useAuthStore.getState();
+
+        if (!!authStore.token) {
+          config.headers["Authorization"] = "Bearer " + authStore.token;
+        }
+
         return config;
       },
       (error) => {
@@ -37,9 +46,55 @@ class API {
 
     this.axiosInstance.interceptors.response.use(
       (response) => {
+        console.log(response);
         return response.data;
       },
-      (error) => {
+      async (error) => {
+        const { response, config } = error;
+        const status = response?.status;
+        const authStore = useAuthStore.getState();
+
+        if (status === 406 || status === 403) {
+          authStore.clearAll();
+          window.location.href = "/auth/login";
+        }
+
+        if (
+          status === 401 &&
+          !!authStore.token &&
+          !!authStore.refreshToken &&
+          !isRefreshToken
+        ) {
+          isRefreshToken = true;
+
+          try {
+            const response: IApiResponse<{
+              token: string;
+              refreshToken: string;
+            }> = await this.post("/auth/refresh", {
+              refreshToken: authStore.refreshToken,
+            });
+
+            if (response?.status === 200) {
+              authStore.setAllToken(
+                response.data.token,
+                response.data.refreshToken
+              );
+
+              config.baseURL = defaultConfig.baseURL;
+
+              return this.axiosInstance(config);
+            }
+          } catch (refreshError) {
+            console.log("Token refresh failed:", refreshError);
+            authStore.clearAll();
+            window.location.href = "/auth/login";
+            return Promise.reject(refreshError);
+          } finally {
+            isRefreshToken = false;
+          }
+        }
+
         return Promise.reject(error);
       }
     );

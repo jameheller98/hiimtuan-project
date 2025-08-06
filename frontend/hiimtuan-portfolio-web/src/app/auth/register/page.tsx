@@ -4,6 +4,7 @@ import Image from "next/image";
 import BackIcon from "@/app/components/BackIcon";
 import Footer from "../../components/Footer";
 import FormRegister from "./components/FormRegister";
+import Link from "next/link";
 
 export default function Register() {
   return (
@@ -54,6 +55,12 @@ export default function Register() {
           delay={500}
         >
           <FormRegister />
+          <p className="text-center mt-6">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="text-(--color-blue)">
+              Sign in
+            </Link>
+          </p>
         </SlideTransition>
         <SlideTransition
           className="mt-auto lg:absolute lg:bottom-0"

@@ -2,15 +2,7 @@ import SlideTransition from "@/app/components/SlideTransition";
 import Footer from "../../components/Footer";
 import FormChangePassword from "./components/FormChangePassword";
 
-export default async function ChangePassword({
-  searchParams,
-}: {
-  searchParams: Promise<{ token: string | string[] | undefined }>;
-}) {
-  const { token } = await searchParams;
-
-  console.log(token);
-
+export default async function ChangePassword() {
   return (
     <main className="overflow-hidden flex min-h-screen p-6 pb-0 gap-7 lg:p-8 lg:gap-8">
       <div className="relative flex-1 flex flex-col max-w-[700px] mx-auto lg:items-center lg:justify-center">

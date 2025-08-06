@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-
 export default function Home() {
-  redirect("/auth/login");
+  return <main className="grow-1"></main>;
 }

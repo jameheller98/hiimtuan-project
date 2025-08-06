@@ -9,6 +9,7 @@ import * as z from "zod";
 import { useChangePasswordMutation } from "@/api/mutations/auth/useChangePasswordMutation";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
 const FormSchema = z.object({
   newPassword: z.string(),
@@ -29,6 +30,8 @@ export default function FormChangePassword() {
       confirmPassword: "",
     },
   });
+
+  useCheckIsLogin();
 
   useEffect(() => {
     if (!token) {

@@ -3,6 +3,7 @@ import Image from "next/image";
 import FormLogin from "./components/FormLogin";
 import Footer from "../../components/Footer";
 import Link from "next/link";
+import BackIcon from "@/app/components/BackIcon";
 
 export default function Login() {
   return (
@@ -26,11 +27,21 @@ export default function Login() {
         />
       </SlideTransition>
       <div className="w-full flex-1 flex flex-col lg:w-auto lg:items-center lg:justify-center">
+        <SlideTransition className="sm:hidden" position="left" delay={250}>
+          <BackIcon />
+        </SlideTransition>
         <SlideTransition
-          className="sm:mx-auto sm:w-2/3 2xl:w-1/2"
+          className="relative mt-4 sm:mt-0 sm:mx-auto sm:w-2/3 2xl:w-1/2"
           position="left"
           delay={250}
         >
+          <SlideTransition
+            className="hidden sm:mb-4 sm:block lg:absolute lg:bottom-full"
+            position="left"
+            delay={250}
+          >
+            <BackIcon />
+          </SlideTransition>
           <p className="font-semibold text-2xl">Welcome to my heart</p>
           <p className="text-base mt-4">
             Today is a new day. It&apos;s your day. Sign in to start new your

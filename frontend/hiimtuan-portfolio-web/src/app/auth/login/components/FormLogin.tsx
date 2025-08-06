@@ -8,6 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import { useLoginMutation } from "@/api/mutations/auth/useLoginMutation";
+import { useAuthStore } from "@/stores";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
+import { toast } from "react-toastify";
+import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
 const FormSchema = z.object({
   email: z.string(),
@@ -17,6 +22,8 @@ const FormSchema = z.object({
 type FormInput = z.infer<typeof FormSchema>;
 
 export default function FormLogin() {
+  const router = useRouter();
+  const { setAllToken } = useAuthStore();
   const { trigger } = useLoginMutation();
   const { register, handleSubmit } = useForm<FormInput>({
     resolver: zodResolver(FormSchema),
@@ -26,8 +33,30 @@ export default function FormLogin() {
     },
   });
 
-  const handleLogin = (data: FormInput) => {
-    trigger(data);
+  useCheckIsLogin();
+
+  const handleLogin = async (data: FormInput) => {
+    try {
+      const result = await trigger(data);
+
+      if (result.status === 200 && result.data) {
+        setAllToken(result.data.token, result.data.refreshToken);
+        router.replace("/");
+      }
+    } catch (e) {
+      console.log(e);
+      const error = e as AxiosError<{ message: string }>;
+      if (error?.request?.status === 0) {
+        toast.error("Server error! Please comeback later.");
+      }
+
+      if (error?.response?.status === 401) {
+        toast.error(
+          error?.response?.data?.message ||
+            "Server error! Please comeback later."
+        );
+      }
+    }
   };
 
   return (

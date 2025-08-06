@@ -9,6 +9,7 @@ import * as z from "zod";
 import { useResetPasswordMutation } from "@/api/mutations/auth/useResetPasswordMutation";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
 const FormSchema = z.object({
   email: z.string(),
@@ -25,6 +26,8 @@ export default function FormForgotPassword() {
       email: "",
     },
   });
+
+  useCheckIsLogin();
 
   const handleResetPassword = async (data: FormInput) => {
     try {
