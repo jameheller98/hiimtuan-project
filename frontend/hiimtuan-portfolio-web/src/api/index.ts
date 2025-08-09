@@ -46,7 +46,6 @@ class API {
 
     this.axiosInstance.interceptors.response.use(
       (response) => {
-        console.log(response);
         return response.data;
       },
       async (error) => {

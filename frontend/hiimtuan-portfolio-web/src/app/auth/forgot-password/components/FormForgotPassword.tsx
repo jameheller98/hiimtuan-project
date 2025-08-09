@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
 const FormSchema = z.object({
-  email: z.string(),
+  email: z.email("Email invalid"),
 });
 
 type FormInput = z.infer<typeof FormSchema>;

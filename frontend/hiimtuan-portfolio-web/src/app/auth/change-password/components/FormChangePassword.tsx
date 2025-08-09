@@ -11,10 +11,18 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import useCheckIsLogin from "@/hooks/useCheckIsLogin";
 
-const FormSchema = z.object({
-  newPassword: z.string(),
-  confirmPassword: z.string(),
-});
+const FormSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .nonempty("Password is required")
+      .min(6, "At least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Password do not match.",
+    path: ["confirmPassword"],
+  });
 
 type FormInput = z.infer<typeof FormSchema>;
 
@@ -66,7 +74,7 @@ export default function FormChangePassword() {
         label="New password"
         type="password"
         autoComplete="off"
-        placeholder="At least 8 characters"
+        placeholder="At least 6 characters"
         {...register("newPassword")}
       />
       <TextInput

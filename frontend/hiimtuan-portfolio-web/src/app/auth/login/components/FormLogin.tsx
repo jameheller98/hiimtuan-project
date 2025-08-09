@@ -79,7 +79,7 @@ export default function FormLogin() {
         type="password"
         autoComplete="off"
         classNameContainer="mt-4"
-        placeholder="At least 8 characters"
+        placeholder="Your secret"
         {...register("password")}
       />
       <Link
