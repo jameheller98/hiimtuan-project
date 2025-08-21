@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "com.hiimtuan.user_service.proto";
+option java_outer_classname = "UserServiceProto";
+
+message GrpcUser {
+  int64 id = 1;
+  string email = 2;
+  string fullName = 3;
+  repeated string roles = 4;
+}
+
+message ResponseUser {
+  GrpcUser user = 1;
+}
+
+service UserService {
+  rpc getUser(google.protobuf.Empty) returns (ResponseUser) {}
+}
