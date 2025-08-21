@@ -18,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -26,11 +25,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private static final List<String> PUBLIC_PATHS = List.of(
-            "/api/v1/auth/",
-            "/api/v1/mail/"
-    );
-
 
     @Override
     protected void doFilterInternal(
@@ -39,9 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        final String path = request.getRequestURI();
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ") || PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
