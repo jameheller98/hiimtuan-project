@@ -53,7 +53,7 @@ class API {
         const status = response?.status;
         const authStore = useAuthStore.getState();
 
-        if (status === 406 || status === 403) {
+        if (status === 406) {
           authStore.clearAll();
           window.location.href = "/auth/login";
         }

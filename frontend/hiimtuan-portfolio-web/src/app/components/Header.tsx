@@ -135,6 +135,7 @@ const DropDown = ({
 
   const handleLogout = async () => {
     try {
+      setShowDropdown(false);
       await trigger();
     } catch (e) {
       console.log(e);
