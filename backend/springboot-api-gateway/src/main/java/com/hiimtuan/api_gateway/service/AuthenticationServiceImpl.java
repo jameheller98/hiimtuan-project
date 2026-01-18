@@ -38,12 +38,19 @@ public class AuthenticationServiceImpl  implements AuthenticationService {
 
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-        User authenticatedUser = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow();
+        Optional<User> authenticatedUser = userRepository.findByEmail(loginRequestDto.getEmail());
+        
+        if(authenticatedUser.isEmpty()) {
+            throw new AccountException("User not found");
+        }
 
-        String jwtToken = jwtService.generateToken(authenticatedUser.getId().toString());
+        if(!passwordEncoder.matches(loginRequestDto.getPassword(), authenticatedUser.get().getPassword())) {
+            throw new AccountException("Password is incorrect");
+        }
 
-        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(authenticatedUser);
+        String jwtToken = jwtService.generateToken(authenticatedUser.get().getId().toString());
+
+        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(authenticatedUser.get());
 
         return userMapper.UserToLoginResponse(jwtToken, jwtRefreshToken.getToken());
     }
