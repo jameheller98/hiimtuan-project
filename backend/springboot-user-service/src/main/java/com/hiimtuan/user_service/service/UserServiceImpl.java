@@ -1,6 +1,7 @@
 package com.hiimtuan.user_service.service;
 
 import com.hiimtuan.common_service.constant.RoleEnum;
+import com.hiimtuan.common_service.service.JwtService;
 import com.hiimtuan.user_service.dto.request.RegisterRequestDto;
 import com.hiimtuan.user_service.dto.response.*;
 import com.hiimtuan.user_service.entity.Role;
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final JwtService jwtService;
 
     @Override
     public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
@@ -44,6 +46,19 @@ public class UserServiceImpl implements UserService {
         List<User> users = new ArrayList<>(userRepository.findAll(pageable));
 
         return users.stream().map(userMapper::UserToUserResponse).toList();
+    }
+
+    @Override
+    public UserResponseDto getProfile(String token) {
+        String id = jwtService.extractUsername(token);
+        
+        Optional<User> user = userRepository.findById(Integer.parseInt(id.trim()));
+
+        if (user.isEmpty()){
+           throw new AccountException("Email doesn't exist");
+        }
+
+        return userMapper.UserToUserResponse(user.get());
     }
 
     private RegisterResponseDto getRegisterResponseDto(RegisterRequestDto registerRequestDto, Optional<Role> optionalRole) {

@@ -25,12 +25,16 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponseDto>> authenticatedUser() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        User currentUser = (User) authentication.getPrincipal();
+    public ResponseEntity<ApiResponse<UserResponseDto>> authenticatedUser(@RequestHeader("Authorization") String authHeader) {
 
-        return ResponseEntity.ok(ApiResponse.success("Get user profile success!", userMapper.UserToUserResponse(null)));
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            
+            return ResponseEntity.ok(ApiResponse.success("Get user profile success!", userService.getProfile(token)));
+        }
+       
+
+        return ResponseEntity.ok(ApiResponse.error("Missing or invalid Authorization token!", userMapper.UserToUserResponse(null)));
     }
 
     @GetMapping("/list")
