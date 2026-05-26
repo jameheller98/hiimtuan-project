@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  naming-server:
+    build: ./backend/springboot-naming-server
+    ports:
+      - "8761:8761"
+    networks:
+      - portfolio-net
+
+  config-server:
+    build: ./backend/springboot-config
+    ports:
+      - "8888:8888"
+    depends_on:
+      - naming-server
+    networks:
+      - portfolio-net
+
+  api-gateway:
+    build: ./backend/springboot-api-gateway
+    ports:
+      - "8765:8765"
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  user-service:
+    build: ./backend/springboot-user-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  post-service:
+    build: ./backend/springboot-post-service
+    ports:
+      - "8200:8200"
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  mail-service:
+    build: ./backend/springboot-mail-service
+    ports:
+      - "8100:8100"
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  cloud-server-central:
+    build: ./backend/springboot-cloud-server-central
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  common-service:
+    build: ./backend/springboot-common-service
+    depends_on:
+      - naming-server
+      - config-server
+    networks:
+      - portfolio-net
+
+  frontend:
+    build: ./frontend/hiimtuan-portfolio-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - portfolio-net
+
+networks:
+  portfolio-net:
+    driver: bridge
