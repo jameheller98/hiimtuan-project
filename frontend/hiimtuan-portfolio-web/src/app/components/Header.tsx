@@ -1,7 +1,7 @@
 "use client";
 
 import { useLogoutMutation } from "@/api/mutations/auth/useLogoutMutation";
-import { useProfileQuery } from "@/api/queries/auth/useProfileMutation";
+import { useProfileQuery } from "@/api/queries/auth/useProfileQuery";
 import useClickOutside from "@/hooks/useClickOutside";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAuthStore } from "@/stores";

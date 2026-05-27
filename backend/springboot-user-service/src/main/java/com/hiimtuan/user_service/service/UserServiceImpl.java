@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getProfile(String token) {
         String id = jwtService.extractUsername(token);
         
-        Optional<User> user = userRepository.findById(Integer.parseInt(id.trim()));
+        Optional<User> user = userRepository.findById(Long.parseLong(id.trim()));
 
         if (user.isEmpty()){
            throw new AccountException("Email doesn't exist");

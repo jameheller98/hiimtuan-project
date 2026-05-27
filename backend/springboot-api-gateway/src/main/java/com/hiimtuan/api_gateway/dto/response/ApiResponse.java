@@ -18,4 +18,8 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(HttpStatus.OK.value(), message, data);
     }
+
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), message, data);
+    }
 }

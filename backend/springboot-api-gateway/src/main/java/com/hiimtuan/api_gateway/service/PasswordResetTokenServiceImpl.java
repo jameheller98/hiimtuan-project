@@ -1,7 +1,6 @@
 package com.hiimtuan.api_gateway.service;
 
 import com.hiimtuan.api_gateway.entity.PasswordResetToken;
-import com.hiimtuan.api_gateway.entity.User;
 import com.hiimtuan.api_gateway.repository.PasswordResetTokenRepository;
 import com.hiimtuan.common_service.config.AuthenticationConfiguration;
 import lombok.AllArgsConstructor;
@@ -18,13 +17,13 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Override
-    public PasswordResetToken createPasswordResetToken(User user) {
-        Optional<PasswordResetToken> oldPasswordResetToken = passwordResetTokenRepository.findByUserId(user.getId());
+    public PasswordResetToken createPasswordResetToken(Long userId) {
+        Optional<PasswordResetToken> oldPasswordResetToken = passwordResetTokenRepository.findByUserId(userId);
 
         oldPasswordResetToken.ifPresent(passwordResetTokenRepository::delete);
 
         PasswordResetToken token = PasswordResetToken.builder()
-                .user(user)
+                .userId(userId)
                 .expiryDate(Instant.now().plusMillis(authenticationConfiguration.getPasswordResetExpirationTime()))
                 .token(UUID.randomUUID().toString())
                 .build();

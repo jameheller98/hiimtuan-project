@@ -9,6 +9,6 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 public class GrpcConfiguration {
     @Bean
     MailServiceGrpc.MailServiceBlockingStub stubMailService(GrpcChannelFactory channels) {
-        return MailServiceGrpc.newBlockingStub(channels.createChannel("local"));
+        return MailServiceGrpc.newBlockingStub(channels.createChannel("mail-service"));
     }
 }

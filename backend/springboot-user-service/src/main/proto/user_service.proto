@@ -17,6 +17,33 @@ message ResponseUser {
   GrpcUser user = 1;
 }
 
+message ValidateCredentialsRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message ValidateCredentialsResponse {
+  bool success = 1;
+  GrpcUser user = 2;
+  string error = 3;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message UpdatePasswordRequest {
+  int64 userId = 1;
+  string newPassword = 2;
+}
+
+message UpdatePasswordResponse {
+  bool success = 1;
+}
+
 service UserService {
   rpc getUser(google.protobuf.Empty) returns (ResponseUser) {}
+  rpc validateCredentials(ValidateCredentialsRequest) returns (ValidateCredentialsResponse) {}
+  rpc getUserByEmail(GetUserByEmailRequest) returns (ResponseUser) {}
+  rpc updatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse) {}
 }

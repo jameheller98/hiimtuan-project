@@ -7,81 +7,181 @@ services:
       - "8761:8761"
     networks:
       - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   config-server:
-    build: ./backend/springboot-config
+    build: ./backend/springboot-cloud-server-central
     ports:
       - "8888:8888"
     depends_on:
-      - naming-server
+      naming-server:
+        condition: service_healthy
+    volumes:
+      - ./backend/springboot-config:/config
+    environment:
+      CONFIG_GIT_URI: file:///config
     networks:
       - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
-  api-gateway:
-    build: ./backend/springboot-api-gateway
+  mysql:
+    image: mysql:8.0
     ports:
-      - "8765:8765"
-    depends_on:
-      - naming-server
-      - config-server
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Daddassawsawsd9*}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-hiimtuan}
+    volumes:
+      - mysql-data:/var/lib/mysql
     networks:
       - portfolio-net
-
-  user-service:
-    build: ./backend/springboot-user-service
-    ports:
-      - "8000:8000"
-    depends_on:
-      - naming-server
-      - config-server
-    networks:
-      - portfolio-net
-
-  post-service:
-    build: ./backend/springboot-post-service
-    ports:
-      - "8200:8200"
-    depends_on:
-      - naming-server
-      - config-server
-    networks:
-      - portfolio-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   mail-service:
     build: ./backend/springboot-mail-service
     ports:
       - "8100:8100"
+      - "9090:9090"
     depends_on:
-      - naming-server
-      - config-server
+      naming-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    environment:
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
     networks:
       - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
-  cloud-server-central:
-    build: ./backend/springboot-cloud-server-central
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: springboot-user-service/Dockerfile
+    ports:
+      - "8000:8000"
+      - "9091:9091"
     depends_on:
-      - naming-server
-      - config-server
+      naming-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      mail-service:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hiimtuan}?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Daddassawsawsd9*}
+      SPRING_GRPC_CLIENT_CHANNELS_MAIL-SERVICE_ADDRESS: mail-service:9090
     networks:
       - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-  common-service:
-    build: ./backend/springboot-common-service
+  post-service:
+    build:
+      context: ./backend
+      dockerfile: springboot-post-service/Dockerfile
+    ports:
+      - "8200:8200"
     depends_on:
-      - naming-server
-      - config-server
+      naming-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hiimtuan}?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Daddassawsawsd9*}
+      SPRING_GRPC_CLIENT_CHANNELS_USER-SERVICE_ADDRESS: user-service:9091
     networks:
       - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: springboot-api-gateway/Dockerfile
+    ports:
+      - "8765:8765"
+    depends_on:
+      naming-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      mail-service:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hiimtuan}?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Daddassawsawsd9*}
+      SPRING_GRPC_CLIENT_CHANNELS_MAIL-SERVICE_ADDRESS: mail-service:9090
+      SPRING_GRPC_CLIENT_CHANNELS_USER-SERVICE_ADDRESS: user-service:9091
+      APP_FRONTEND_URL: http://localhost:3000
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   frontend:
     build: ./frontend/hiimtuan-portfolio-web
     ports:
       - "3000:3000"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: http://api-gateway:8765
     networks:
       - portfolio-net
 
 networks:
   portfolio-net:
     driver: bridge
+
+volumes:
+  mysql-data:

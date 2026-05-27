@@ -8,7 +8,7 @@ import { IApiResponse, TVersion } from "./api.interface";
 import { useAuthStore } from "@/stores";
 
 const defaultConfig = {
-  baseURL: "http://localhost:8765/api",
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8765"}/api`,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

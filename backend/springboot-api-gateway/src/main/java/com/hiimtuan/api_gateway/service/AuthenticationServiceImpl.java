@@ -4,94 +4,100 @@ import com.hiimtuan.api_gateway.dto.response.*;
 import com.hiimtuan.api_gateway.dto.request.*;
 import com.hiimtuan.api_gateway.entity.PasswordResetToken;
 import com.hiimtuan.api_gateway.entity.RefreshToken;
-import com.hiimtuan.api_gateway.entity.User;
-import com.hiimtuan.api_gateway.mapper.UserMapper;
 import com.hiimtuan.api_gateway.repository.PasswordResetTokenRepository;
 import com.hiimtuan.api_gateway.repository.RefreshTokenRepository;
-import com.hiimtuan.api_gateway.repository.UserRepository;
 import com.hiimtuan.common_service.service.JwtService;
 import com.hiimtuan.mail_service.proto.MailServiceGrpc;
 import com.hiimtuan.mail_service.proto.RequestMail;
+import com.hiimtuan.user_service.proto.*;
 import com.hiimtuan.api_gateway.exception.custom.AccountException;
 import com.hiimtuan.api_gateway.exception.custom.PasswordResetTokenException;
 import com.hiimtuan.api_gateway.exception.custom.RefreshTokenException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
-public class AuthenticationServiceImpl  implements AuthenticationService {
-    private final UserRepository userRepository;
+@RequiredArgsConstructor
+public class AuthenticationServiceImpl implements AuthenticationService {
     private final RefreshTokenRepository refreshTokenRepository;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final MailServiceGrpc.MailServiceBlockingStub stubMailService;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final UserServiceGrpc.UserServiceBlockingStub stubUserService;
 
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-        Optional<User> authenticatedUser = userRepository.findByEmail(loginRequestDto.getEmail());
-        
-        if(authenticatedUser.isEmpty()) {
-            throw new AccountException("User not found");
+        ValidateCredentialsResponse response = stubUserService.validateCredentials(
+                ValidateCredentialsRequest.newBuilder()
+                        .setEmail(loginRequestDto.getEmail())
+                        .setPassword(loginRequestDto.getPassword())
+                        .build()
+        );
+
+        if (!response.getSuccess()) {
+            throw new AccountException(response.getError());
         }
 
-        if(!passwordEncoder.matches(loginRequestDto.getPassword(), authenticatedUser.get().getPassword())) {
-            throw new AccountException("Password is incorrect");
-        }
+        long userId = response.getUser().getId();
+        String jwtToken = jwtService.generateToken(String.valueOf(userId));
+        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(userId);
 
-        String jwtToken = jwtService.generateToken(authenticatedUser.get().getId().toString());
-
-        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(authenticatedUser.get());
-
-        return userMapper.UserToLoginResponse(jwtToken, jwtRefreshToken.getToken());
+        return LoginResponseDto.builder()
+                .token(jwtToken)
+                .refreshToken(jwtRefreshToken.getToken())
+                .build();
     }
 
     @Override
     public LoginResponseDto refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) {
         Optional<RefreshToken> currentRefreshToken = refreshTokenRepository.findByToken(refreshTokenRequestDto.getRefreshToken());
 
-        if (currentRefreshToken.isEmpty()){
+        if (currentRefreshToken.isEmpty()) {
             throw new RefreshTokenException("Invalid refresh token.");
         }
 
-        if (refreshTokenService.isTokenExpired(currentRefreshToken.get())){
+        if (refreshTokenService.isTokenExpired(currentRefreshToken.get())) {
             refreshTokenRepository.delete(currentRefreshToken.get());
             throw new RefreshTokenException("Refresh token expired. Please login again.");
         }
 
-        if (currentRefreshToken.get().getUser() == null) {
-            throw new AccountException("User not found");
-        }
+        long userId = currentRefreshToken.get().getUserId();
+        String jwtToken = jwtService.generateToken(String.valueOf(userId));
+        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(userId);
 
-        String jwtToken = jwtService.generateToken(currentRefreshToken.get().getUser().getId().toString());
-
-        RefreshToken jwtRefreshToken = refreshTokenService.createRefreshToken(currentRefreshToken.get().getUser());
-
-        return userMapper.UserToLoginResponse(jwtToken, jwtRefreshToken.getToken());
+        return LoginResponseDto.builder()
+                .token(jwtToken)
+                .refreshToken(jwtRefreshToken.getToken())
+                .build();
     }
 
     @Override
     public String resetPassword(ResetPasswordRequestDto resetPasswordRequestDto) {
-        Optional<User> user = userRepository.findByEmail(resetPasswordRequestDto.getEmail());
-
-        if (user.isEmpty()) {
+        ResponseUser responseUser;
+        try {
+            responseUser = stubUserService.getUserByEmail(
+                    GetUserByEmailRequest.newBuilder().setEmail(resetPasswordRequestDto.getEmail()).build()
+            );
+        } catch (Exception e) {
             throw new AccountException("User not found");
         }
 
-        PasswordResetToken jwtPasswordRefreshToken = passwordResetTokenService.createPasswordResetToken(user.get());
+        long userId = responseUser.getUser().getId();
+        PasswordResetToken passwordResetToken = passwordResetTokenService.createPasswordResetToken(userId);
 
         RequestMail requestMail = RequestMail.newBuilder()
                 .setRecipient(resetPasswordRequestDto.getEmail())
-                .setMsgBody(String.format("This is link change password:%nhttp://localhost:3000/auth/change-password?token=%s%nPlease not share link!", jwtPasswordRefreshToken.getToken()))
+                .setMsgBody(String.format("This is link change password:%n%s/auth/change-password?token=%s%nPlease not share link!", frontendUrl, passwordResetToken.getToken()))
                 .setSubject("Change password")
                 .build();
 
@@ -113,15 +119,14 @@ public class AuthenticationServiceImpl  implements AuthenticationService {
             throw new PasswordResetTokenException("Password reset token expired");
         }
 
-        User user = currentPasswordResetToken.get().getUser();
+        long userId = currentPasswordResetToken.get().getUserId();
 
-        if (user == null) {
-            throw new AccountException("User not found");
-        }
-
-        user.setPassword(passwordEncoder.encode(changePasswordRequestDto.getPassword()));
-
-        userRepository.save(user);
+        stubUserService.updatePassword(
+                UpdatePasswordRequest.newBuilder()
+                        .setUserId(userId)
+                        .setNewPassword(changePasswordRequestDto.getPassword())
+                        .build()
+        );
 
         passwordResetTokenRepository.delete(currentPasswordResetToken.get());
 
@@ -132,12 +137,9 @@ public class AuthenticationServiceImpl  implements AuthenticationService {
     public String logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication != null) {
-            if(authentication.getPrincipal() instanceof User currentUser){
-                Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(currentUser.getId());
-
-                refreshToken.ifPresent(refreshTokenRepository::delete);
-            }
+        if (authentication != null && authentication.getPrincipal() instanceof String userId) {
+            Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(Long.valueOf(userId));
+            refreshToken.ifPresent(refreshTokenRepository::delete);
         }
 
         SecurityContextHolder.clearContext();

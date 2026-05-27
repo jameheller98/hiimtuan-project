@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationExceptions(
             MethodArgumentNotValidException exception) {
-        ProblemDetail errorDetail =  ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
+        ProblemDetail errorDetail =  ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), exception.getMessage());
 
         Map<String, String> errors = new HashMap<>();
 

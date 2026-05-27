@@ -2,8 +2,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import Form from "next/form";
-import TextInput from "@/ui/TextInput";
-import Button from "@/ui/Button";
+import TextInput from "@/components/ui/TextInput";
+import Button from "@/components/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import useCheckIsLogin from "@/hooks/useCheckIsLogin";

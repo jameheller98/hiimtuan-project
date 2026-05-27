@@ -1,7 +1,6 @@
 package com.hiimtuan.api_gateway.service;
 
 import com.hiimtuan.api_gateway.entity.RefreshToken;
-import com.hiimtuan.api_gateway.entity.User;
 import com.hiimtuan.api_gateway.repository.RefreshTokenRepository;
 import com.hiimtuan.common_service.config.AuthenticationConfiguration;
 import lombok.AllArgsConstructor;
@@ -18,13 +17,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
-    public RefreshToken createRefreshToken(User user) {
-        Optional<RefreshToken> oldRefreshToken = refreshTokenRepository.findByUserId(user.getId());
+    public RefreshToken createRefreshToken(Long userId) {
+        Optional<RefreshToken> oldRefreshToken = refreshTokenRepository.findByUserId(userId);
 
         oldRefreshToken.ifPresent(refreshTokenRepository::delete);
 
-        RefreshToken token =  RefreshToken.builder()
-                .user(user)
+        RefreshToken token = RefreshToken.builder()
+                .userId(userId)
                 .expiryDate(Instant.now().plusMillis(authenticationConfiguration.getRefreshExpirationTime()))
                 .token(UUID.randomUUID().toString())
                 .build();

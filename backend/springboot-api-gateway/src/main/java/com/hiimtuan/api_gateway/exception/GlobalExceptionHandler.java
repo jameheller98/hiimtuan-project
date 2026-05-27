@@ -55,12 +55,12 @@ public class GlobalExceptionHandler {
         }
 
         if (exception instanceof RefreshTokenException) {
-            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
+            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(401), exception.getMessage());
             errorDetail.setProperty("message", "Refresh token error");
         }
 
         if (exception instanceof PasswordResetTokenException) {
-            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
+            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), exception.getMessage());
             errorDetail.setProperty("message", "Password reset token error");
         }
 
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationExceptions(
             MethodArgumentNotValidException exception) {
-        ProblemDetail errorDetail =  ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
+        ProblemDetail errorDetail =  ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), exception.getMessage());
 
         Map<String, String> errors = new HashMap<>();
 

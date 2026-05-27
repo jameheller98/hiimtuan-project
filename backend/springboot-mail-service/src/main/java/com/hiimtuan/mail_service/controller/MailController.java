@@ -1,6 +1,6 @@
 package com.hiimtuan.mail_service.controller;
 
-import com.hiimtuan.mail_service.dto.request.ApiResponse;
+import com.hiimtuan.mail_service.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
